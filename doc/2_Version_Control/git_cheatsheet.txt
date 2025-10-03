@@ -4,5 +4,6 @@ git checkout
 git pull
 git push
 git merge
-git rebase
-git fetch
+git rebase - rewrite git history
+git fetch - download new history from remote repository but doesn't change your local repository
+
