@@ -7,3 +7,8 @@ git merge
 git rebase - rewrite git history
 git fetch - download new history from remote repository but doesn't change your local repository
 
+workflow to sync fork regularly:
+git fetch upstream
+git checkout main
+git merge upstream/main
+git push origin main
