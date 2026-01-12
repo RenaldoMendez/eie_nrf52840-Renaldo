@@ -3,55 +3,45 @@
  */
 
  #include <zephyr/kernel.h>
+ #include <zephyr/device.h>
  #include <zephyr/drivers/gpio.h>
+ #include <zephyr/sys/printk.h>
+ #include <inttypes.h>
 
- #define LED0_NODE DT_ALIAS(led0)
- #define LED1_NODE DT_ALIAS(led1)
- #define LED2_NODE DT_ALIAS(led2)
- #define LED3_NODE DT_ALIAS(led3)
+ #define SLEEP_TIME_MS 1000
+
+ #define SW0_NODE DT_ALIAS(sw0)
  
- static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
- static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
- static const struct gpio_dt_spec led2 = GPIO_DT_SPEC_GET(LED2_NODE, gpios);
- static const struct gpio_dt_spec led3 = GPIO_DT_SPEC_GET(LED3_NODE, gpios);
- 
+ static const struct gpio_dt_spec button = GPIO_DT_SPEC_GET(SW0_NODE, gpios);
+
+ static struct gpio_callback button_isr_data;
+
+ void button_isr(const struct device *dev, struct gpio_callback *cb, uint32_t pins) {
+   printk("Button 0 pressed!\n");
+ }
+
  int main(void) {
    int ret;
 
-   if(!gpio_is_ready_dt(&led0) || !gpio_is_ready_dt(&led1) || !gpio_is_ready_dt(&led2) || !gpio_is_ready_dt(&led3)){
-      return -1;
+   if(!gpio_is_ready_dt(&button)) {
+      return 0;
    }
 
-   ret = gpio_pin_configure_dt(&led0, GPIO_OUTPUT_ACTIVE);
-   if (ret < 0 ) {
-      return ret;
+   ret = gpio_pin_configure_dt(&button, GPIO_INPUT);
+   if (0 > ret ) {
+      return 0;
    }
 
-   ret = gpio_pin_configure_dt(&led1, GPIO_OUTPUT_ACTIVE);
-   if (ret < 0 ) {
-      return ret;
+   ret = gpio_pin_interrupt_configure_dt(&button, GPIO_INT_EDGE_TO_ACTIVE);
+   if (0 > ret) {
+      return 0;
    }
 
-   ret = gpio_pin_configure_dt(&led2, GPIO_OUTPUT_ACTIVE);
-   if (ret < 0 ) {
-      return ret;
-   }
-   ret = gpio_pin_configure_dt(&led3, GPIO_OUTPUT_ACTIVE);
-   if (ret < 0 ) {
-      return ret;
-   }
+   gpio_init_callback(&button_isr_data, button_isr, BIT(button.pin));
+   gpio_add_callback(button.port, &button_isr_data);
 
     while (1) {
-      gpio_pin_toggle_dt(&led0);
-      k_msleep(500);
-      gpio_pin_toggle_dt(&led1);
-      k_msleep(1000);
-      gpio_pin_toggle_dt(&led2);
-      k_msleep(1000);
-      gpio_pin_toggle_dt(&led3);
-      k_msleep(500);
 
-      
     }
     return 0;
  }
